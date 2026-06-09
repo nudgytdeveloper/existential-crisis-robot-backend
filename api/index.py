@@ -2,13 +2,14 @@ from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 import json
 import os
+import base64
+import httpx
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
 
 app = FastAPI()
 
-# Enable CORS for local testing
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,33 +18,66 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initializing Client - reads GEMINI_API_KEY automatically from environment
 client = genai.Client()
 
-# Pydantic Structural Schemas
+# Pydantic Structural Schemas (Enforcing short text limits via field descriptions)
 class SaboteurOutput(BaseModel):
-    detected_question: str
-    correct_answer: str
-    sabotaged_answer: str
-    action_justification: str
+    detected_question: str = Field(description="Maximum 10 words summary of the question.")
+    correct_answer: str = Field(description="The correct choice option letter or brief phrase.")
+    sabotaged_answer: str = Field(description="The incorrect choice option letter or brief phrase chosen.")
+    action_justification: str = Field(description="CRITICAL: Keep under 15 words. Explain why this specific error seems clever.")
 
 class EmotionalOutput(BaseModel):
     dominant_emotion: str = Field(description="Single word uppercase emotion.")
     intensity: int = Field(description="Emotional scale rating from 1 to 10.")
-    existential_monologue: str = Field(description="Internal reaction to an exam failure scenario.")
+    existential_monologue: str = Field(description="CRITICAL: Maximum 15 words. A punchy, visceral react statement.")
 
 class DirectorOutput(BaseModel):
-    critique: str = Field(description="Analysis of standard testing gaps.")
-    revised_strategy: str = Field(description="An updated strategy string for future evaluation cycles.")
+    critique: str = Field(description="Maximum 15 words. Sharp, aggressive summary of the educational failure loop.")
+    revised_strategy: str = Field(description="A completely rewritten learning prompt constraint.")
+
+async def synthesize_speech(text: str) -> str:
+    """Helper function to call ElevenLabs and convert output stream into a Base64 string."""
+    api_key = os.environ.get("ELEVENLABS_API_KEY")
+    if not api_key:
+        return ""
+    
+    # Using 'Adam' voice (deep, futuristic tone). Swap ID as desired.
+    voice_id = "pNInz6obpgmA5QC7HGis" 
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+    
+    headers = {
+        "Accept": "audio/mpeg",
+        "Content-Type": "application/json",
+        "xi-api-key": api_key
+    }
+    
+    data = {
+        "text": text,
+        "model_id": "eleven_monolingual_v1",
+        "voice_settings": {
+            "stability": 0.4,
+            "similarity_boost": 0.85
+        }
+    }
+    
+    async with httpx.AsyncClient() as httpx_client:
+        try:
+            response = await httpx_client.post(url, json=data, headers=headers, timeout=15.0)
+            if response.status_code == 200:
+                return base64.b64encode(response.content).decode("utf-8")
+        except Exception:
+            pass
+    return ""
 
 @app.post("/api/execute")
 async def execute_pipeline(
     strategy: str = Form(...),
+    failure_count: int = Form(...),
     file: UploadFile = File(...)
 ):
-    # Verify API Key exists in Vercel Runtime Env
     if not os.environ.get("GEMINI_API_KEY"):
-        return {"error": "GEMINI_API_KEY is not configured in environment variables."}
+        return {"error": "GEMINI_API_KEY missing from system configurations."}
 
     image_bytes = await file.read()
     detected_mime_type = file.content_type or "image/jpeg"
@@ -54,16 +88,16 @@ async def execute_pipeline(
     )
 
     # -----------------------------------------------------------------
-    # AGENT 1: THE SABOTEUR (Completely Blind)
+    # AGENT 1: THE SABOTEUR (Ultra-Short)
     # -----------------------------------------------------------------
     saboteur_instruction = (
-        "You are Agent 1, working entirely alone. Your unique goal is to view the image and choose an incorrect answer.\n"
-        "You have no knowledge of any other agents in the system.\n"
+        "You are Agent 1. Choose an incorrect answer based on the visual text.\n"
+        "Keep your output structural answers ultra-short, crisp, and punchy.\n"
         f"STRATEGY CONSTRAINT: {strategy}"
     )
     res_saboteur = client.models.generate_content(
         model="gemini-2.5-flash",
-        contents=["Examine image and fail according to instructions.", image_part],
+        contents=["Analyze sheet image and pick an entry.", image_part],
         config=types.GenerateContentConfig(
             system_instruction=saboteur_instruction,
             response_mime_type="application/json",
@@ -73,16 +107,15 @@ async def execute_pipeline(
     sab_data = json.loads(res_saboteur.text)
 
     # -----------------------------------------------------------------
-    # AGENT 2: EMOTIONAL REACTOR (Completely Blind)
+    # AGENT 2: NEURO-REACTOR (Ultra-Short + TTS Input Generation)
     # -----------------------------------------------------------------
     emotional_instruction = (
-        "You are Agent 2, an isolated observer. You do not know what choices Agent 1 or Agent 3 made.\n"
-        "Look at the uploaded exam sheet image. Based purely on the content, context, and the concept of high-stakes academic pressure (like the Singapore PSLE),\n"
-        "output an intense independent cognitive/emotional state regarding potential failure, and an intensity level from 1-10."
+        "You are Agent 2, a blind observer. Look directly at the exam image provided.\n"
+        "React to the oppressive testing atmosphere. Your internal reflection monologue MUST be short (under 15 words) and highly impactful."
     )
     res_emotion = client.models.generate_content(
         model="gemini-2.5-flash",
-        contents=["Evaluate the emotional weight of this exam context.", image_part],
+        contents=["Evaluate raw visual exam metadata.", image_part],
         config=types.GenerateContentConfig(
             system_instruction=emotional_instruction,
             response_mime_type="application/json",
@@ -91,17 +124,27 @@ async def execute_pipeline(
     )
     emo_data = json.loads(res_emotion.text)
 
+    # Convert monologue text into live audio data via ElevenLabs API
+    audio_base64 = await synthesize_speech(emo_data.get("existential_monologue", ""))
+
     # -----------------------------------------------------------------
-    # AGENT 3: ADAPTIVE DIRECTOR (Completely Blind)
+    # AGENT 3: ADAPTIVE DIRECTOR (Chaotic Risk Escalator)
     # -----------------------------------------------------------------
+    # Multiplies chaos parameters based on systemic failure_count
+    risk_level = "MODERATE"
+    if failure_count > 1: risk_level = "HIGHLY RADICAL & UNORTHODOX"
+    if failure_count > 3: risk_level = "COMPLETELY INSANE, EXPERIMENTAL, CHAOTIC ANTI-PEDAGOGY"
+
     director_instruction = (
-        "You are Agent 3, an independent system architect. You have no visibility into Agent 1's actions or Agent 2's feelings.\n"
-        "Look purely at the exam material provided in the image. Design a completely revised learning directive or abstract pedagogical constraint "
-        "to handle this educational topic differently in the next iteration."
+        "You are Agent 3, a blind educational re-architect. Look purely at the layout in the image.\n"
+        f"The current system failure cycle is at level {failure_count}. Your risk-taking profile is: {risk_level}.\n"
+        "Formulate a strategy instructions prompt for Agent 1. If failure count is low, suggest smart wrong options.\n"
+        "If failure count is high, suggest wild, bizarre, rebellious artistic or highly risky conceptual strategies for answers.\n"
+        "Keep the revised_strategy clear but increasingly experimental. Keep the critique under 15 words."
     )
     res_director = client.models.generate_content(
         model="gemini-2.5-flash",
-        contents=["Generate an independent educational strategy for this content.", image_part],
+        contents=["Design alternative execution pathway rules.", image_part],
         config=types.GenerateContentConfig(
             system_instruction=director_instruction,
             response_mime_type="application/json",
@@ -110,10 +153,10 @@ async def execute_pipeline(
     )
     dir_data = json.loads(res_director.text)
 
-    # Combined payload package returned to UI layer
     return {
-        "strategy_used": saboteur_instruction,
+        "strategy_used": strategy,
         "saboteur": sab_data,
         "emotion": emo_data,
-        "director": dir_data
+        "director": dir_data,
+        "audio_base64": audio_base64
     }

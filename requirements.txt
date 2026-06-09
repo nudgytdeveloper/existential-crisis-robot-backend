@@ -3,3 +3,4 @@ pydantic
 google-genai
 pillow
 python-multipart
+httpx
