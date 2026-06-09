@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Failing the PSLE: AI Adventures</title>
+    <style>
+        body {
+            background-color: #0B0F19;
+            color: #E2E8F0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; display: flex; gap: 20px; }
+        .sidebar { width: 300px; flex-shrink: 0; background: rgba(30, 41, 59, 0.2); padding: 20px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .main-content { flex-grow: 1; }
+        .main-title {
+            font-family: 'Courier New', Courier, monospace;
+            color: #A855F7;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-shadow: 0px 0px 12px rgba(168, 85, 247, 0.4);
+            margin: 0 0 5px 0;
+        }
+        .subtitle { color: #94A3B8; font-size: 0.95rem; margin-top: 0; margin-bottom: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px; }
+        .agent-card {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        .saboteur-border { border-top: 4px solid #A855F7; }
+        .reactor-border { border-top: 4px solid #EC4899; }
+        .director-border { border-top: 4px solid #0EA5E9; }
+        .custom-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            font-family: monospace;
+            text-transform: uppercase;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        .badge-purple { background-color: rgba(168, 85, 247, 0.2); color: #C084FC; border: 1px solid #A855F7; }
+        .badge-pink { background-color: rgba(236, 72, 153, 0.2); color: #F472B6; border: 1px solid #EC4899; }
+        .badge-blue { background-color: rgba(14, 165, 233, 0.2); color: #38BDF8; border: 1px solid #0EA5E9; }
+        .buffer-box {
+            background: linear-gradient(135deg, #1E1B4B 0%, #311042 100%);
+            border: 2px solid #A855F7;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-family: monospace;
+            margin-top: 25px;
+        }
+        button {
+            width: 100%; padding: 10px; background: #A855F7; color: white; border: none; 
+            border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px;
+        }
+        button.secondary { background: rgba(255,255,255,0.1); margin-top: 20px; }
+        button:disabled { background: #475569; cursor: not-allowed; }
+        #preview { max-width: 100%; border-radius: 6px; margin-top: 10px; display: none; }
+        .strategy-caption { background: #0F172A; padding: 10px; border-radius: 6px; font-size: 0.85rem; font-family: monospace; color: #38BDF8; margin-top: 5px; }
+        .history-section { margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
+        .log-entry { background: rgba(30,41,59,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #A855F7; }
+        input[type="file"] { display: none; }
+        .file-label { display: block; background: #1E293B; text-align: center; padding: 12px; border-radius: 6px; cursor: pointer; border: 1px dashed rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="sidebar">
+        <h2 style="color:#A855F7; font-family:monospace; margin-top:0;">🎛️ CORE CONSOLE</h2>
+        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+        
+        <label class="file-label" for="file-upload">📁 Choose Image Matrix Snippet</label>
+        <input type="file" id="file-upload" accept="image/*">
+        <img id="preview" alt="Matrix view">
+        
+        <button id="exec-btn" disabled>⚡ EXECUTE LEARNING</button>
+        
+        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
+        <h3 style="margin-bottom:5px; font-size:1rem;">📜 Active System Strategy</h3>
+        <div id="strategy-display" class="strategy-caption">Loading blueprint parameters...</div>
+        
+        <button class="secondary" id="purge-btn">🗑️ PURGE MEMORY CORES</button>
+    </div>
+
+    <div class="main-content">
+        <h1 class="main-title">⚡ AI FAILS THE PSLE: Discovering the Benefits of Failure</h1>
+        <p class="subtitle">Monitoring real-time behavioral trajectory & emotional adaptation signatures</p>
+        <hr style="border:0; border-top: 1px solid rgba(255,255,255,0.1);">
+
+        <div id="status-message" style="color: #38BDF8; font-family: monospace;">📌 System Standby. Load an exam snippet file in the Core Console sidebar.</div>
+
+        <div class="grid-3" id="agent-grid" style="display:none;">
+            <div class="agent-card saboteur-border">
+                <span class="custom-badge badge-purple">AGENT 01 // SABOTEUR</span>
+                <p><strong>Detected Question:</strong> <br><span id="sab-q" style="color:#94A3B8; font-size:0.9rem;">-</span></p>
+                <p><strong>True Answer:</strong> <span id="sab-true" style="color:#4ADE80;">-</span> | <strong>Targeted Output:</strong> <span id="sab-target" style="color:#F87171;">-</span></p>
+                <p><strong>Logic Rationale:</strong> <br><em id="sab-logic">-</em></p>
+            </div>
+            
+            <div class="agent-card reactor-border">
+                <span class="custom-badge badge-pink">AGENT 02 // NEURO-REACTOR</span>
+                <h4>EMOTION STATE: <span id="emo-state" style="color:#EC4899;">-</span></h4>
+                <p>Intensity Signature: <b id="emo-val">5</b>/10</p>
+                <input type="range" min="1" max="10" id="emo-slider" style="width:100%; accent-color:#EC4899;" disabled>
+                <p style="font-style: italic; color: #CBD5E1; border-left: 3px solid #EC4899; padding-left: 10px; margin-top:15px;" id="emo-quote">"-"</p>
+            </div>
+            
+            <div class="agent-card director-border">
+                <span class="custom-badge badge-blue">AGENT 03 // ADAPTIVE DIRECTOR</span>
+                <p><strong>Feedback Critique:</strong> <br><span id="dir-critique" style="color:#38BDF8;">-</span></p>
+                <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1);">
+                <p><strong>Evolved Command String:</strong> <br><code id="dir-cmd" style="word-break:break-all;">-</code></p>
+            </div>
+        </div>
+
+        <div class="buffer-box" id="buffer-container" style="display:none;">
+            <p style="color: #A855F7; margin: 0; font-size: 0.8rem; letter-spacing: 2px;">📡 TRANSMITTING COMMAND PACKET OVER SERIAL BUS</p>
+            <h2 style="color: #FFF; margin: 10px 0 0 0; font-weight: bold;" id="serial-output">PORT COM3 // EXECUTE_SHADE_BUBBLE = "NULL"</h2>
+        </div>
+
+        <div class="history-section">
+            <h3>📊 System Evolution Over Time</h3>
+            <div id="history-logs"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const DEFAULT_STRATEGY = "Identify the correct answer, and choose an alternative option that is incorrect but highly plausible for all of the questions on the image. Explain your responses.";
+    
+    // State management backed by sessionStorage
+    let currentStrategy = sessionStorage.getItem('current_strategy') || DEFAULT_STRATEGY;
+    let historyLog = JSON.parse(sessionStorage.getItem('history_log')) || [];
+
+    const fileInput = document.getElementById('file-upload');
+    const previewImg = document.getElementById('preview');
+    const execBtn = document.getElementById('exec-btn');
+    const purgeBtn = document.getElementById('purge-btn');
+    const strategyDisplay = document.getElementById('strategy-display');
+    const historyLogsContainer = document.getElementById('history-logs');
+
+    // Display Strategy Parameters Initial State
+    strategyDisplay.textContent = currentStrategy;
+    renderHistory();
+
+    // Visual file selection update hook
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            previewImg.src = URL.createObjectURL(file);
+            previewImg.style.display = 'block';
+            execBtn.disabled = false;
+        }
+    });
+
+    // Execute Request Pipeline
+    execBtn.addEventListener('click', async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        execBtn.disabled = true;
+        document.getElementById('status-message').textContent = "⚡ Initializing Core Engine Analysis Threads...";
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('strategy', currentStrategy);
+
+        try {
+            const response = await fetch('/api/execute', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            // Bind layout updates
+            document.getElementById('status-message').textContent = "📡 Data Packet Construction Finalized.";
+            document.getElementById('agent-grid').style.display = 'grid';
+            document.getElementById('buffer-container').style.display = 'block';
+
+            // Agent 1 Interface Fill
+            document.getElementById('sab-q').textContent = data.saboteur.detected_question;
+            document.getElementById('sab-true').textContent = data.saboteur.correct_answer;
+            document.getElementById('sab-target').textContent = data.saboteur.sabotaged_answer;
+            document.getElementById('sab-logic').textContent = data.saboteur.action_justification;
+
+            // Agent 2 Interface Fill
+            document.getElementById('emo-state').textContent = data.emotion.dominant_emotion;
+            document.getElementById('emo-val').textContent = data.emotion.intensity;
+            document.getElementById('emo-slider').value = data.emotion.intensity;
+            document.getElementById('emo-quote').textContent = `"${data.emotion.existential_monologue}"`;
+
+            // Agent 3 Interface Fill
+            document.getElementById('dir-critique').textContent = data.director.critique;
+            document.getElementById('dir-cmd').textContent = data.director.revised_strategy;
+
+            // Serial Data Pipeline Box Text update
+            document.getElementById('serial-output').textContent = `PORT COM3 // EXECUTE_SHADE_BUBBLE = "${data.saboteur.sabotaged_answer}"`;
+
+            // Update Global Pipeline State Tracking
+            currentStrategy = data.director.revised_strategy;
+            sessionStorage.setItem('current_strategy', currentStrategy);
+            strategyDisplay.textContent = currentStrategy;
+
+            // Append History Registry Node
+            historyLog.unshift({
+                strategy_used: data.strategy_used,
+                sabotaged_answer: data.saboteur.sabotaged_answer,
+                correct_answer: data.saboteur.correct_answer,
+                dominant_emotion: data.emotion.dominant_emotion,
+                intensity: data.emotion.intensity,
+                existential_monologue: data.emotion.existential_monologue,
+                next_calculated_strategy: currentStrategy
+            });
+            sessionStorage.setItem('history_log', JSON.stringify(historyLog));
+            renderHistory();
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('status-message').textContent = "❌ Runtime Network Exception Intercepted.";
+        } finally {
+            execBtn.disabled = false;
+        }
+    });
+
+    // Reset Core Storage Parameters
+    purgeBtn.addEventListener('click', () => {
+        sessionStorage.clear();
+        currentStrategy = DEFAULT_STRATEGY;
+        historyLog = [];
+        strategyDisplay.textContent = currentStrategy;
+        historyLogsContainer.innerHTML = '';
+        document.getElementById('agent-grid').style.display = 'none';
+        document.getElementById('buffer-container').style.display = 'none';
+        previewImg.style.display = 'none';
+        fileInput.value = '';
+        execBtn.disabled = true;
+        document.getElementById('status-message').textContent = "📌 System Standby. Memory Purged.";
+    });
+
+    // Render historical components visually
+    function renderHistory() {
+        historyLogsContainer.innerHTML = '';
+        historyLog.forEach((log, index) => {
+            const idx = historyLog.length - index;
+            const logDiv = document.createElement('div');
+            logDiv.className = 'log-entry';
+            logDiv.innerHTML = `
+                <strong>📍 PASS LOG ${String(idx).padStart(2, '0')} — Emotional Node: ${log.dominant_emotion} (Intensity: ${log.intensity}/10)</strong>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:8px; font-size:0.9rem; color:#CBD5E1;">
+                    <div>
+                        <p><b>Strategy:</b> ${log.strategy_used}</p>
+                        <p><b>Vector:</b> Selected [${log.sabotaged_answer}] over Correct [${log.correct_answer}]</p>
+                    </div>
+                    <div>
+                        <p><b>Psychological Log:</b> <em>"${log.existential_monologue}"</em></p>
+                        <p><b>Altered Output Passed Downstream:</b> <code style="color:#38BDF8;">${log.next_calculated_strategy}</code></p>
+                    </div>
+                </div>
+            `;
+            historyLogsContainer.appendChild(logDiv);
+        });
+    }
+</script>
+</body>
+</html>
