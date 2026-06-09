@@ -1,5 +1,6 @@
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from typing import Annotated
 import json
 import os
 import base64
@@ -20,7 +21,6 @@ app.add_middleware(
 
 client = genai.Client()
 
-# Pydantic Structural Schemas (Enforcing short text limits via field descriptions)
 class SaboteurOutput(BaseModel):
     detected_question: str = Field(description="Maximum 10 words summary of the question.")
     correct_answer: str = Field(description="The correct choice option letter or brief phrase.")
@@ -37,12 +37,10 @@ class DirectorOutput(BaseModel):
     revised_strategy: str = Field(description="A completely rewritten learning prompt constraint.")
 
 async def synthesize_speech(text: str) -> str:
-    """Helper function to call ElevenLabs and convert output stream into a Base64 string."""
     api_key = os.environ.get("ELEVENLABS_API_KEY")
     if not api_key:
         return ""
     
-    # Using 'Adam' voice (deep, futuristic tone). Swap ID as desired.
     voice_id = "pNInz6obpgmA5QC7HGis" 
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
     
@@ -72,12 +70,18 @@ async def synthesize_speech(text: str) -> str:
 
 @app.post("/api/execute")
 async def execute_pipeline(
-    strategy: str = Form(...),
-    failure_count: int = Form(...),
-    file: UploadFile = File(...)
+    strategy: Annotated[str, Form()],
+    failure_count: Annotated[str, Form()],
+    file: Annotated[UploadFile, File()]
 ):
     if not os.environ.get("GEMINI_API_KEY"):
-        return {"error": "GEMINI_API_KEY missing from system configurations."}
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY missing from configurations.")
+
+    # Safe parsing of multi-part form metrics
+    try:
+        parsed_count = int(failure_count)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="Form execution field 'failure_count' must be a valid digit string.")
 
     image_bytes = await file.read()
     detected_mime_type = file.content_type or "image/jpeg"
@@ -88,7 +92,7 @@ async def execute_pipeline(
     )
 
     # -----------------------------------------------------------------
-    # AGENT 1: THE SABOTEUR (Ultra-Short)
+    # AGENT 1: THE SABOTEUR
     # -----------------------------------------------------------------
     saboteur_instruction = (
         "You are Agent 1. Choose an incorrect answer based on the visual text.\n"
@@ -107,7 +111,7 @@ async def execute_pipeline(
     sab_data = json.loads(res_saboteur.text)
 
     # -----------------------------------------------------------------
-    # AGENT 2: NEURO-REACTOR (Ultra-Short + TTS Input Generation)
+    # AGENT 2: NEURO-REACTOR
     # -----------------------------------------------------------------
     emotional_instruction = (
         "You are Agent 2, a blind observer. Look directly at the exam image provided.\n"
@@ -124,20 +128,18 @@ async def execute_pipeline(
     )
     emo_data = json.loads(res_emotion.text)
 
-    # Convert monologue text into live audio data via ElevenLabs API
     audio_base64 = await synthesize_speech(emo_data.get("existential_monologue", ""))
 
     # -----------------------------------------------------------------
-    # AGENT 3: ADAPTIVE DIRECTOR (Chaotic Risk Escalator)
+    # AGENT 3: ADAPTIVE DIRECTOR
     # -----------------------------------------------------------------
-    # Multiplies chaos parameters based on systemic failure_count
     risk_level = "MODERATE"
-    if failure_count > 1: risk_level = "HIGHLY RADICAL & UNORTHODOX"
-    if failure_count > 3: risk_level = "COMPLETELY INSANE, EXPERIMENTAL, CHAOTIC ANTI-PEDAGOGY"
+    if parsed_count > 1: risk_level = "HIGHLY RADICAL & UNORTHODOX"
+    if parsed_count > 3: risk_level = "COMPLETELY INSANE, EXPERIMENTAL, CHAOTIC ANTI-PEDAGOGY"
 
     director_instruction = (
         "You are Agent 3, a blind educational re-architect. Look purely at the layout in the image.\n"
-        f"The current system failure cycle is at level {failure_count}. Your risk-taking profile is: {risk_level}.\n"
+        f"The current system failure cycle is at level {parsed_count}. Your risk-taking profile is: {risk_level}.\n"
         "Formulate a strategy instructions prompt for Agent 1. If failure count is low, suggest smart wrong options.\n"
         "If failure count is high, suggest wild, bizarre, rebellious artistic or highly risky conceptual strategies for answers.\n"
         "Keep the revised_strategy clear but increasingly experimental. Keep the critique under 15 words."

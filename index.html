@@ -3,133 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Failing the PSLE: AI Adventures</title>
+    <title>⚡ MATRIX FAILS // PSLE UNDERGROUND ⚡</title>
     <style>
+        :root {
+            --bg-color: #030712;
+            --panel-bg: #090f1d;
+            --neon-purple: #bc00dd;
+            --neon-pink: #ff007f;
+            --neon-cyan: #00f0ff;
+            --neon-green: #39ff14;
+            --text-main: #cbd5e1;
+            --terminal-font: 'Courier New', Courier, monospace;
+        }
+
         body {
-            background-color: #0B0F19;
-            color: #E2E8F0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--terminal-font);
             margin: 0;
+            padding: 25px;
+            background-image: radial-gradient(rgba(188, 0, 221, 0.05) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+
+        .hud-wrapper {
+            max-width: 1500px;
+            margin: 0 auto;
+            display: flex;
+            gap: 25px;
+        }
+
+        .control-deck {
+            width: 320px;
+            flex-shrink: 0;
+            background: var(--panel-bg);
             padding: 20px;
+            border: 2px solid var(--neon-purple);
+            box-shadow: 0 0 15px rgba(188, 0, 221, 0.2);
+            border-radius: 4px;
+            position: relative;
         }
-        .container { max-width: 1400px; margin: 0 auto; display: flex; gap: 20px; }
-        .sidebar { width: 300px; flex-shrink: 0; background: rgba(30, 41, 59, 0.2); padding: 20px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); }
-        .main-content { flex-grow: 1; }
-        .main-title {
-            font-family: 'Courier New', Courier, monospace;
-            color: #A855F7;
-            font-weight: 800;
-            letter-spacing: 2px;
-            text-shadow: 0px 0px 12px rgba(168, 85, 247, 0.4);
-            margin: 0 0 5px 0;
-        }
-        .subtitle { color: #94A3B8; font-size: 0.95rem; margin-top: 0; margin-bottom: 20px; }
-        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px; }
-        .agent-card {
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-        .saboteur-border { border-top: 4px solid #A855F7; }
-        .reactor-border { border-top: 4px solid #EC4899; }
-        .director-border { border-top: 4px solid #0EA5E9; }
-        .custom-badge {
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.8rem;
+
+        .control-deck::before {
+            content: "SYSTEM DECK // OVERLORD";
+            position: absolute;
+            top: -10px; left: 15px;
+            background: var(--bg-color);
+            padding: 0 5px;
+            font-size: 0.75rem;
+            color: var(--neon-purple);
             font-weight: bold;
-            font-family: monospace;
+        }
+
+        .main-display {
+            flex-grow: 1;
+        }
+
+        .header-banner {
+            border: 2px solid var(--neon-pink);
+            background: #0d0614;
+            padding: 15px 25px;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.15);
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .header-banner h1 {
+            color: #fff;
+            margin: 0;
+            font-size: 1.6rem;
             text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 8px var(--neon-pink);
+        }
+
+        .header-banner p {
+            margin: 5px 0 0 0;
+            color: var(--neon-cyan);
+            font-size: 0.85rem;
+        }
+
+        .grid-hud {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .cyber-card {
+            background: #060b16;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            position: relative;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.6);
+        }
+
+        .card-saboteur { border-left: 4px solid var(--neon-purple); }
+        .card-reactor { border-left: 4px solid var(--neon-pink); }
+        .card-director { border-left: 4px solid var(--neon-cyan); }
+
+        .tag-node {
+            font-size: 0.7rem;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            padding: 2px 8px;
+            border-radius: 2px;
             display: inline-block;
             margin-bottom: 15px;
         }
-        .badge-purple { background-color: rgba(168, 85, 247, 0.2); color: #C084FC; border: 1px solid #A855F7; }
-        .badge-pink { background-color: rgba(236, 72, 153, 0.2); color: #F472B6; border: 1px solid #EC4899; }
-        .badge-blue { background-color: rgba(14, 165, 233, 0.2); color: #38BDF8; border: 1px solid #0EA5E9; }
-        .buffer-box {
-            background: linear-gradient(135deg, #1E1B4B 0%, #311042 100%);
-            border: 2px solid #A855F7;
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
-            padding: 20px;
-            border-radius: 10px;
+        .tag-purple { background: rgba(188, 0, 221, 0.2); color: #e67eff; border: 1px solid var(--neon-purple); }
+        .tag-pink { background: rgba(255, 0, 127, 0.2); color: #ff7ebb; border: 1px solid var(--neon-pink); }
+        .tag-cyan { background: rgba(0, 240, 255, 0.2); color: #7efff7; border: 1px solid var(--neon-cyan); }
+
+        .matrix-box {
+            background: #020408;
+            border: 1px solid #1e293b;
+            padding: 10px;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 10px;
+        }
+
+        .cyber-btn {
+            background: transparent;
+            color: var(--neon-cyan);
+            border: 1px solid var(--neon-cyan);
+            padding: 12px;
+            font-family: var(--terminal-font);
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 5px rgba(0, 240, 255, 0.1);
+        }
+
+        .cyber-btn:hover:not(:disabled) {
+            background: var(--neon-cyan);
+            color: #000;
+            box-shadow: 0 0 15px var(--neon-cyan);
+        }
+
+        .cyber-btn:disabled {
+            border-color: #334155;
+            color: #334155;
+            cursor: not-allowed;
+        }
+
+        .purge-btn {
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+            margin-top: 20px;
+        }
+        .purge-btn:hover {
+            background: var(--neon-pink) !important;
+            color: #000 !important;
+            box-shadow: 0 0 15px var(--neon-pink) !important;
+        }
+
+        .file-dropzone {
+            display: block;
+            border: 1px dashed var(--neon-purple);
+            padding: 15px;
             text-align: center;
-            font-family: monospace;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-bottom: 15px;
+            background: #040812;
+        }
+
+        #preview-frame {
+            max-width: 100%;
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-top: 10px;
+            display: none;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .status-terminal {
+            background: #010204;
+            border-left: 3px solid var(--neon-green);
+            padding: 12px;
+            font-size: 0.85rem;
+            color: var(--neon-green);
+            box-shadow: inset 0 0 10px rgba(57, 255, 20, 0.05);
+        }
+
+        .transmission-bus {
+            background: linear-gradient(90deg, #10061e 0%, #050b18 100%);
+            border: 1px dashed var(--neon-purple);
+            padding: 15px;
             margin-top: 25px;
+            font-size: 0.9rem;
+            text-align: center;
+            letter-spacing: 1px;
         }
-        button {
-            width: 100%; padding: 10px; background: #A855F7; color: white; border: none; 
-            border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px;
+
+        .history-hud {
+            margin-top: 40px;
+            border-top: 1px solid #1e293b;
+            padding-top: 20px;
         }
-        button.secondary { background: rgba(255,255,255,0.1); margin-top: 20px; }
-        button:disabled { background: #475569; cursor: not-allowed; }
-        #preview { max-width: 100%; border-radius: 6px; margin-top: 10px; display: none; }
-        .strategy-caption { background: #0F172A; padding: 10px; border-radius: 6px; font-size: 0.85rem; font-family: monospace; color: #38BDF8; margin-top: 5px; }
-        .history-section { margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
-        .log-entry { background: rgba(30,41,59,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #A855F7; }
-        input[type="file"] { display: none; }
-        .file-label { display: block; background: #1E293B; text-align: center; padding: 12px; border-radius: 6px; cursor: pointer; border: 1px dashed rgba(255,255,255,0.2); }
+
+        .log-row {
+            background: #050a14;
+            border: 1px solid #111827;
+            padding: 15px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="sidebar">
-        <h2 style="color:#A855F7; font-family:monospace; margin-top:0;">🎛️ CORE CONSOLE</h2>
-        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+<div class="hud-wrapper">
+    <div class="control-deck">
+        <label class="file-dropzone" for="file-upload">📡 UPLOAD IMAGE SNIPPET MATRIX</label>
+        <input type="file" id="file-upload" style="display:none;" accept="image/*">
+        <img id="preview-frame" alt="Target frame buffer">
         
-        <label class="file-label" for="file-upload">📁 Choose Image Matrix Snippet</label>
-        <input type="file" id="file-upload" accept="image/*">
-        <img id="preview" alt="Matrix view">
+        <button id="exec-btn" class="cyber-btn" style="margin-top:15px;" disabled>⚡ TRIGGER EVAL LOOP</button>
         
-        <button id="exec-btn" disabled>⚡ EXECUTE LEARNING</button>
+        <div style="margin-top:30px;">
+            <div style="font-size:0.75rem; color:var(--neon-cyan);">ACTIVE INSTRUCTION STRING:</div>
+            <div id="strategy-display" class="matrix-box" style="word-break:break-word; max-height:140px; overflow-y:auto; border-color:var(--neon-purple);">...</div>
+        </div>
+
+        <div style="margin-top:15px; font-size:0.8rem;">
+            SYSTEM CRITICAL FAILURES: <span id="failure-metric" style="color:var(--neon-pink); font-weight:bold; text-shadow:0 0 5px var(--neon-pink);">0</span>
+        </div>
         
-        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
-        <h3 style="margin-bottom:5px; font-size:1rem;">📜 Active System Strategy</h3>
-        <div id="strategy-display" class="strategy-caption">Loading blueprint parameters...</div>
-        
-        <button class="secondary" id="purge-btn">🗑️ PURGE MEMORY CORES</button>
+        <button class="cyber-btn purge-btn" id="purge-btn">🗑️ FLUSH CORE LOGS</button>
     </div>
 
-    <div class="main-content">
-        <h1 class="main-title">⚡ AI FAILS THE PSLE: Discovering the Benefits of Failure</h1>
-        <p class="subtitle">Monitoring real-time behavioral trajectory & emotional adaptation signatures</p>
-        <hr style="border:0; border-top: 1px solid rgba(255,255,255,0.1);">
+    <div class="main-display">
+        <div class="header-banner">
+            <h1>⚡ TERMINAL // FAILING THE PSLE MECHANICS ⚡</h1>
+            <p>CONCURRENT DECENTRALIZED MODEL ARRAY PROCESSOR // RISK SPECTRUM ADAPTIVE PROTOCOL</p>
+        </div>
 
-        <div id="status-message" style="color: #38BDF8; font-family: monospace;">📌 System Standby. Load an exam snippet file in the Core Console sidebar.</div>
+        <div id="status-display" class="status-terminal">🟢 CORE STATUS: STANDBY // BUFFER EXPECTING MEDIA SNIPPET SNIFFER INPUT</div>
 
-        <div class="grid-3" id="agent-grid" style="display:none;">
-            <div class="agent-card saboteur-border">
-                <span class="custom-badge badge-purple">AGENT 01 // SABOTEUR</span>
-                <p><strong>Detected Question:</strong> <br><span id="sab-q" style="color:#94A3B8; font-size:0.9rem;">-</span></p>
-                <p><strong>True Answer:</strong> <span id="sab-true" style="color:#4ADE80;">-</span> | <strong>Targeted Output:</strong> <span id="sab-target" style="color:#F87171;">-</span></p>
-                <p><strong>Logic Rationale:</strong> <br><em id="sab-logic">-</em></p>
+        <div class="grid-hud" id="agent-hud" style="display:none;">
+            <div class="cyber-card card-saboteur">
+                <span class="tag-node tag-purple">NODE 01 // DEVIANT ACTOR</span>
+                <div style="font-size:0.85rem; margin-bottom:5px;"><b>TARGET QUEST:</b></div>
+                <div id="sab-q" style="color:#94a3b8; font-size:0.8rem; margin-bottom:10px;">-</div>
+                <div style="font-size:0.85rem;">VALID: <span id="sab-true" style="color:var(--neon-green);">-</span></div>
+                <div style="font-size:0.85rem; margin-bottom:10px;">INJECTED: <span id="sab-target" style="color:var(--neon-pink);">-</span></div>
+                <div class="matrix-box"><b>LOGIC:</b> <em id="sab-logic">-</em></div>
             </div>
             
-            <div class="agent-card reactor-border">
-                <span class="custom-badge badge-pink">AGENT 02 // NEURO-REACTOR</span>
-                <h4>EMOTION STATE: <span id="emo-state" style="color:#EC4899;">-</span></h4>
-                <p>Intensity Signature: <b id="emo-val">5</b>/10</p>
-                <input type="range" min="1" max="10" id="emo-slider" style="width:100%; accent-color:#EC4899;" disabled>
-                <p style="font-style: italic; color: #CBD5E1; border-left: 3px solid #EC4899; padding-left: 10px; margin-top:15px;" id="emo-quote">"-"</p>
+            <div class="cyber-card card-reactor">
+                <span class="tag-node tag-pink">NODE 02 // NEURAL SPEECH EMULATOR</span>
+                <h3 style="margin:0 0 5px 0; font-size:1.1rem; letter-spacing:1px; color:#fff;">EMOTION: <span id="emo-state" style="color:var(--neon-pink);">-</span></h3>
+                <div style="font-size:0.8rem; margin-bottom:5px;">INTENSITY INDICES: <span id="emo-val" style="color:var(--neon-cyan); font-weight:bold;">5</span>/10</div>
+                <input type="range" min="1" max="10" id="emo-slider" style="width:100%; pointer-events:none;" disabled>
+                <div class="matrix-box" style="border-color:var(--neon-pink); color:#fff; font-style:italic;" id="emo-quote">"-"</div>
+                <div style="font-size:0.65rem; color:var(--neon-pink); margin-top:5px; text-align:right; font-weight:bold;">🗣️ ELEVENLABS AUDIO BROADCAST ACTIVE</div>
             </div>
             
-            <div class="agent-card director-border">
-                <span class="custom-badge badge-blue">AGENT 03 // ADAPTIVE DIRECTOR</span>
-                <p><strong>Feedback Critique:</strong> <br><span id="dir-critique" style="color:#38BDF8;">-</span></p>
-                <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1);">
-                <p><strong>Evolved Command String:</strong> <br><code id="dir-cmd" style="word-break:break-all;">-</code></p>
+            <div class="cyber-card card-director">
+                <span class="tag-node tag-cyan">NODE 03 // ARCHITECT CONSTRAINER</span>
+                <div style="font-size:0.85rem;"><b>LOOP CRITIQUE:</b></div>
+                <div id="dir-critique" style="color:var(--neon-cyan); font-size:0.8rem; margin-bottom:10px;">-</div>
+                <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:2px;">EVOLVED TARGET PARAMETER PASSED:</div>
+                <div id="dir-cmd" style="font-size:0.75rem; color:var(--neon-green); background:#020408; padding:8px; border:1px solid #1e293b; word-break:break-word;">-</div>
             </div>
         </div>
 
-        <div class="buffer-box" id="buffer-container" style="display:none;">
-            <p style="color: #A855F7; margin: 0; font-size: 0.8rem; letter-spacing: 2px;">📡 TRANSMITTING COMMAND PACKET OVER SERIAL BUS</p>
-            <h2 style="color: #FFF; margin: 10px 0 0 0; font-weight: bold;" id="serial-output">PORT COM3 // EXECUTE_SHADE_BUBBLE = "NULL"</h2>
+        <div class="transmission-bus" id="bus-panel" style="display:none;">
+            📡 OUTPUT PACKET COM PORT: <span id="serial-output" style="color:#fff; font-weight:bold; text-shadow:0 0 8px var(--neon-cyan); font-family:monospace;">NULL</span>
         </div>
 
-        <div class="history-section">
-            <h3>📊 System Evolution Over Time</h3>
+        <div class="history-hud">
+            <h3 style="text-transform:uppercase; color:var(--neon-purple); letter-spacing:1px; margin-bottom:15px;">📊 NODE CHRONOLOGY DATABASE TIMELINE</h3>
             <div id="history-logs"></div>
         </div>
     </div>
@@ -138,22 +287,23 @@
 <script>
     const DEFAULT_STRATEGY = "Identify the correct answer, and choose an alternative option that is incorrect but highly plausible for all of the questions on the image. Explain your responses.";
     
-    // State management backed by sessionStorage
     let currentStrategy = sessionStorage.getItem('current_strategy') || DEFAULT_STRATEGY;
     let historyLog = JSON.parse(sessionStorage.getItem('history_log')) || [];
+    let failureCount = parseInt(sessionStorage.getItem('failure_count')) || 0;
 
     const fileInput = document.getElementById('file-upload');
-    const previewImg = document.getElementById('preview');
+    const previewImg = document.getElementById('preview-frame');
     const execBtn = document.getElementById('exec-btn');
     const purgeBtn = document.getElementById('purge-btn');
     const strategyDisplay = document.getElementById('strategy-display');
+    const failureMetric = document.getElementById('failure-metric');
     const historyLogsContainer = document.getElementById('history-logs');
 
-    // Display Strategy Parameters Initial State
+    // UI Initial configuration parameters mapping
     strategyDisplay.textContent = currentStrategy;
+    failureMetric.textContent = failureCount;
     renderHistory();
 
-    // Visual file selection update hook
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -163,60 +313,83 @@
         }
     });
 
-    // Execute Request Pipeline
     execBtn.addEventListener('click', async () => {
         const file = fileInput.files[0];
         if (!file) return;
 
         execBtn.disabled = true;
-        document.getElementById('status-message').textContent = "⚡ Initializing Core Engine Analysis Threads...";
+        const statusDisplay = document.getElementById('status-display');
+        statusDisplay.textContent = "⚠️ PARSING DATA BLOCKS // FORKING MICRO-AGENT PIPELINE RUNTIME...";
+        statusDisplay.style.color = "var(--neon-cyan)";
+        statusDisplay.style.borderLeftColor = "var(--neon-cyan)";
         
         const formData = new FormData();
         formData.append('file', file);
         formData.append('strategy', currentStrategy);
+        formData.append('failure_count', String(failureCount));
 
         try {
             const response = await fetch('/api/execute', {
                 method: 'POST',
                 body: formData
             });
-            const data = await response.json();
 
-            if (data.error) {
-                alert(data.error);
+            if (!response.ok) {
+                const errorPayload = await response.json();
+                console.error("Server exception validation details:", errorPayload);
+                
+                statusDisplay.textContent = `❌ ERROR ${response.status} // VALIDATION FAILED: ${JSON.stringify(errorPayload.detail || errorPayload)}`;
+                statusDisplay.style.color = "var(--neon-pink)";
+                statusDisplay.style.borderLeftColor = "var(--neon-pink)";
+                execBtn.disabled = false;
                 return;
             }
 
-            // Bind layout updates
-            document.getElementById('status-message').textContent = "📡 Data Packet Construction Finalized.";
-            document.getElementById('agent-grid').style.display = 'grid';
-            document.getElementById('buffer-container').style.display = 'block';
+            const data = await response.json();
 
-            // Agent 1 Interface Fill
+            // Unveil dynamic layouts panels
+            statusDisplay.textContent = "🟢 DATA INTEGRITY EXECUTION COMPLETED // ALL CORES RETURNED SAFE CODE SIGNALS";
+            statusDisplay.style.color = "var(--neon-green)";
+            statusDisplay.style.borderLeftColor = "var(--neon-green)";
+            
+            document.getElementById('agent-hud').style.display = 'grid';
+            document.getElementById('bus-panel').style.display = 'block';
+
+            // Data allocation loops inside UI text views
             document.getElementById('sab-q').textContent = data.saboteur.detected_question;
             document.getElementById('sab-true').textContent = data.saboteur.correct_answer;
             document.getElementById('sab-target').textContent = data.saboteur.sabotaged_answer;
             document.getElementById('sab-logic').textContent = data.saboteur.action_justification;
 
-            // Agent 2 Interface Fill
             document.getElementById('emo-state').textContent = data.emotion.dominant_emotion;
             document.getElementById('emo-val').textContent = data.emotion.intensity;
             document.getElementById('emo-slider').value = data.emotion.intensity;
             document.getElementById('emo-quote').textContent = `"${data.emotion.existential_monologue}"`;
 
-            // Agent 3 Interface Fill
             document.getElementById('dir-critique').textContent = data.director.critique;
             document.getElementById('dir-cmd').textContent = data.director.revised_strategy;
 
-            // Serial Data Pipeline Box Text update
-            document.getElementById('serial-output').textContent = `PORT COM3 // EXECUTE_SHADE_BUBBLE = "${data.saboteur.sabotaged_answer}"`;
+            document.getElementById('serial-output').textContent = `EXECUTE_SHADE_BUBBLE = "${data.saboteur.sabotaged_answer}"`;
 
-            // Update Global Pipeline State Tracking
+            // ElevenLabs Text-to-Speech Processing Module hook
+            if (data.audio_base64) {
+                const audioBlob = await fetch(`data:audio/mpeg;base64,${data.audio_base64}`).then(r => r.blob());
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+                audio.play();
+            }
+
+            // Mutate strategy and count parameters forward
+            failureCount += 1;
             currentStrategy = data.director.revised_strategy;
+            
             sessionStorage.setItem('current_strategy', currentStrategy);
+            sessionStorage.setItem('failure_count', failureCount);
+            
             strategyDisplay.textContent = currentStrategy;
+            failureMetric.textContent = failureCount;
 
-            // Append History Registry Node
+            // Push nodes into historic lists tracking panels
             historyLog.unshift({
                 strategy_used: data.strategy_used,
                 sabotaged_answer: data.saboteur.sabotaged_answer,
@@ -231,44 +404,50 @@
 
         } catch (err) {
             console.error(err);
-            document.getElementById('status-message').textContent = "❌ Runtime Network Exception Intercepted.";
+            statusDisplay.textContent = "❌ COMPILATION CRITICAL EXCEPTION ERRORS TRIGGERED INSIDE API STREAM HOOKS";
+            statusDisplay.style.color = "var(--neon-pink)";
+            statusDisplay.style.borderLeftColor = "var(--neon-pink)";
         } finally {
             execBtn.disabled = false;
         }
     });
 
-    // Reset Core Storage Parameters
     purgeBtn.addEventListener('click', () => {
         sessionStorage.clear();
         currentStrategy = DEFAULT_STRATEGY;
         historyLog = [];
+        failureCount = 0;
+        
         strategyDisplay.textContent = currentStrategy;
+        failureMetric.textContent = failureCount;
         historyLogsContainer.innerHTML = '';
-        document.getElementById('agent-grid').style.display = 'none';
-        document.getElementById('buffer-container').style.display = 'none';
+        
+        document.getElementById('agent-hud').style.display = 'none';
+        document.getElementById('bus-panel').style.display = 'none';
         previewImg.style.display = 'none';
         fileInput.value = '';
         execBtn.disabled = true;
-        document.getElementById('status-message').textContent = "📌 System Standby. Memory Purged.";
+        document.getElementById('status-display').textContent = "🟢 TERMINAL CORE FLUSHED // DISKS PREPPED FOR NEXT RUN INSTRUCTIONS";
+        document.getElementById('status-display').style.color = "var(--neon-green)";
+        document.getElementById('status-display').style.borderLeftColor = "var(--neon-green)";
     });
 
-    // Render historical components visually
     function renderHistory() {
         historyLogsContainer.innerHTML = '';
         historyLog.forEach((log, index) => {
             const idx = historyLog.length - index;
             const logDiv = document.createElement('div');
-            logDiv.className = 'log-entry';
+            logDiv.className = 'log-row';
             logDiv.innerHTML = `
-                <strong>📍 PASS LOG ${String(idx).padStart(2, '0')} — Emotional Node: ${log.dominant_emotion} (Intensity: ${log.intensity}/10)</strong>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:8px; font-size:0.9rem; color:#CBD5E1;">
+                <div style="color:var(--neon-purple); font-weight:bold; margin-bottom:5px;">📍 PASS TRANSACTION CHRONO-ENTRY [${String(idx).padStart(2, '0')}] // NODE EMOTION: ${log.dominant_emotion} (INTENSITY INDICES: ${log.intensity}/10)</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; color:#94a3b8; font-size:0.8rem;">
                     <div>
-                        <p><b>Strategy:</b> ${log.strategy_used}</p>
-                        <p><b>Vector:</b> Selected [${log.sabotaged_answer}] over Correct [${log.correct_answer}]</p>
+                        <div><b>STRATEGY ATTACHED:</b> ${log.strategy_used}</div>
+                        <div style="margin-top:3px;"><b>VECTOR DELTA:</b> Selected [${log.sabotaged_answer}] rather than Correct [${log.correct_answer}]</div>
                     </div>
                     <div>
-                        <p><b>Psychological Log:</b> <em>"${log.existential_monologue}"</em></p>
-                        <p><b>Altered Output Passed Downstream:</b> <code style="color:#38BDF8;">${log.next_calculated_strategy}</code></p>
+                        <div><b>NEURAL REACTION DIALOGUE:</b> <em>"${log.existential_monologue}"</em></div>
+                        <div style="margin-top:3px; color:var(--neon-green)"><b>NEXT DEPLOYED STRATEGY DIRECTIVE:</b> ${log.next_calculated_strategy}</div>
                     </div>
                 </div>
             `;
